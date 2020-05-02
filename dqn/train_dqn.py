@@ -68,7 +68,7 @@ def dqn(agent, args):
                                  alpha=agent.alpha, beta=agent.beta)
 
         # state where we are
-        print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.2f}, episode_dur {:.2f}, timeout_score {]'.format(
+        print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.2f}, episode_dur {:.2f}, timeout_score {}'.format(
             i_episode, scores_mean[-1], score, ctime, timeout_score), end="")
 
         # check whether it is still improving at least a bit
