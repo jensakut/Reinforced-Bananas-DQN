@@ -169,6 +169,18 @@ neatly into the dqn architecture with addons.
 
 #### [A Distributional Perspective on Reinforcement Learning](https://arxiv.org/abs/1707.06887)
 
+
+        In this paper we argue for the fundamental importance of the value distribution: the distribution of the random 
+        return received by a reinforcement learning agent. This is in contrast to the common approach to reinforcement 
+        learning which models the expectation of this return, or value. Although there is an established body of 
+        literature studying the value distribution, thus far it has always been used for a specific purpose such as 
+        implementing risk-aware behaviour. We begin with theoretical results in both the policy evaluation and control 
+        settings, exposing a significant distributional instability in the latter. We then use the distributional 
+        perspective to design a new algorithm which applies Bellman's equation to the learning of approximate value 
+        distributions. We evaluate our algorithm using the suite of games from the Arcade Learning Environment. We 
+        obtain both state-of-the-art results and anecdotal evidence demonstrating the importance of the value 
+        distribution in approximate reinforcement learning. Finally, we combine theoretical and empirical evidence to 
+        highlight the ways in which the value distribution impacts learning in the approximate setting. 
         
 #### [Noisy Networks for Exploration](https://arxiv.org/abs/1706.10295)
         
@@ -182,7 +194,7 @@ neatly into the dqn architecture with addons.
         agent from sub to super-human performance."
         
 
-[Rainbow: Combining Improvements in Deep Reinforcement Learning](https://arxiv.org/abs/1710.02298)
+#### [Rainbow: Combining Improvements in Deep Reinforcement Learning](https://arxiv.org/abs/1710.02298)
         
         
         "The deep reinforcement learning community has made several independent improvements to the DQN algorithm. 
@@ -194,6 +206,7 @@ neatly into the dqn architecture with addons.
         
 
 The picture below shows the performance of all above algorithms. 
+
 ![Rainbow](assets/rainbow.png?raw=true "rainbow dqn")
 
 
@@ -292,10 +305,11 @@ The watch.py file uses the weights obtained at episode 400 of this run.
 
 The best run using Prioritized experience Replay is shown in the following diagram. The weighting factors for using 
 PER are actually decayed in order to achieve a high score. With per activated but the weighting factor alpha and the 
-scaling factor beta both to 0, per achieves a similar performance than using double dqn. 
+scaling factor beta both to 0, per achieves a similar performance than using double dqn with more training examples. 
+The learning rate is set to 1e-4 in contrast to the above implementation with 1e-3. 
 
 
-![Best Run](results/double_True_duel_False_per_True_lr_0.0001_gamma_0.99_batch_256_tau_0.01_alpha_0.6_beta_0.4_per.eps_0.001_updint_16_eps.decay_0.99_end_0.01_1588425192.5867016.png?raw=true "Best run. Double DQN, LR 0.001, Gamma 0.99, Batchsize 256 every 16, tau 0.01, eps_decay 0.99, eps_min 0.01")
+![Best Run](results/double_True_duel_True_per_True_lr_0.0001_gamma_0.99_batch_256_tau_0.01_alpha_0.4_beta_0.4_per.eps_0.001_updint_16_eps.decay_0.99_end_0.01_1588445981.5477183.png?raw=true "Best run. Double DQN, LR 0.001, Gamma 0.99, Batchsize 256 every 16, tau 0.01, eps_decay 0.99, eps_min 0.01")
 
 # Potential improvements
 
