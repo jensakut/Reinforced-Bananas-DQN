@@ -51,8 +51,8 @@ class Agent:
 
         # Q-Network
 
-        self.qnetwork_local = QNetwork_fc(state_size, action_size, args.seed, fc1_units=64, fc2_units=64, use_dueling=self.use_dueling_q_learning).to(device)
-        self.qnetwork_target = QNetwork_fc(state_size, action_size, args.seed, fc1_units=64, fc2_units=64, use_dueling=self.use_dueling_q_learning).to(device)
+        self.qnetwork_local = QNetwork_fc(state_size, action_size, args.seed, fc1_units=args.fc1, fc2_units=args.fc2, use_dueling=self.use_dueling_q_learning).to(device)
+        self.qnetwork_target = QNetwork_fc(state_size, action_size, args.seed, fc1_units=args.fc1, fc2_units=args.fc2, use_dueling=self.use_dueling_q_learning).to(device)
 
         print(self.qnetwork_local)
 
@@ -131,28 +131,31 @@ class Agent:
 
         # Get max predicted Q values (for next states) from target model
         if self.use_double_q_learning:
+            # use the local network to decide which is the best action
             indices = torch.argmax(self.qnetwork_local(next_states).detach(), 1)
+            # use the target network to determine the value of the choice of the local network
             q_targets_next = self.qnetwork_target(next_states).detach().gather(1, indices.unsqueeze(1))
         else:
-            # Get max predicted Q values (for next states) from target model
+            # use the target network to determine the value of the best action in the next state
             q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
 
-        # Compute Q targets for current states
+        # Compute Q targets for current states. If done, there is only reward and no next state
         q_targets = rewards + (gamma * q_targets_next * (1 - dones))
 
-        # Get expected Q values from local model
+        # Get expected Q values from local model (current estimation)
         q_expected = self.qnetwork_local(states).gather(1, actions)
 
         # Compute loss
-        # TODO: Assess self.criterion = nn.SmoothL1Loss()
         if self.use_prioritized_experience_replay:
             # pseudocode 11, loss is td_error and pseudocode 12 priorities is abs td_error
             priorities = abs(q_targets - q_expected)
             # pseudocode 13
-            loss = (is_weights * self.mse_element_loss(q_targets, q_expected)).mean()
+            loss = (is_weights * self.mse_element_loss(q_expected, q_targets)).mean()
             # Update Priorities based on offseted TD error
             self.memory.update_priorities(sample_indices, priorities.squeeze().to('cpu').data.numpy())
         else:
+            # loss is the difference between currently estimated value and value provided by the tuples and the target
+            # network
             loss = F.mse_loss(q_expected, q_targets)
 
         # Minimize the loss

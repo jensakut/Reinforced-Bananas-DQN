@@ -12,12 +12,11 @@ from plotting import Plotting
 
 # dqn function training the agent
 
-def dqn(agent, args, train=True):
+def dqn(agent, args):
     """Deep Q-Learning.
 
     Args
         args: defined in arguments.py
-        train (bool): flag deciding if the agent will train or just play through the episode
     """
 
     ##############################
@@ -27,6 +26,8 @@ def dqn(agent, args, train=True):
     scores_window = deque(maxlen=100)  # last 100 scores
     scores_mean = []
     best_score = -1000.0
+    best_avg_score = -1000.0
+
     max_t = 0
     # have some plotting object that captures the scores
     plotting = Plotting()
@@ -36,18 +37,19 @@ def dqn(agent, args, train=True):
     # run the episodes
     #############################
     for i_episode in range(1, args.n_episodes + 1):
-        env_info = env.reset(train_mode=train)[brain_name]
+        env_info = env.reset(train_mode=args.train)[brain_name]
         state = env_info.vector_observations[0]
         score = 0
-        max_score = 15
+        max_score = 20
+        timeout_score = 0
         t_s = time.time()
         for t in range(args.max_t):
-            action = agent.act(state, eps if train else 0.0)
+            action = agent.act(state, eps if args.train else 0.0)
             env_info = env.step(action)[brain_name]
             next_state = env_info.vector_observations[0]  # get the next state
             reward = env_info.rewards[0]  # get the reward
             done = env_info.local_done[0]  # see if episode has finished
-            if train:
+            if args.train:
                 agent.step(state, action, reward, next_state, done)
             score += reward  # update the score
             state = next_state  # roll over the state to next time step
@@ -55,29 +57,42 @@ def dqn(agent, args, train=True):
                 eps = max(args.eps_end, args.eps_decay * eps)  # decrease epsilon
                 ctime = time.time() - t_s
                 max_t = t
+                timeout_score += 1
                 break
 
+        # do the bookkeeping
         scores.append(score)
         scores_window.append(score)
         scores_mean.append(np.mean(scores_window))
-        best_avg_score=max(best_score, scores_mean[-1])
-        best_score=max(best_score, score)
         plotting.add_measurement(score=score, mean_score=scores_mean[-1], episode_length=max_t, epsilon=eps,
                                  alpha=agent.alpha, beta=agent.beta)
 
-        print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.2f}, episode_dur {:.2f}, max_t {}'.format(
-            i_episode, scores_mean[-1], score, ctime, max_t), end="")
-        if i_episode % 20 == 0:
-            plotting.plotting(args=args, id=i_episode)
-            print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.2f}, episode_dur {:.2f}, max_t {}'.format(
-                i_episode, scores_mean[-1], score, ctime, max_t))
-        if scores_mean[-1] > max_score and train:
-            print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode - 100,
-                                                                                         np.mean(scores_window)))
-            torch.save(agent.qnetwork_local.state_dict(), 'local_network_episode_' + str(i_episode) + '.pth')
+        # state where we are
+        print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.2f}, episode_dur {:.2f}, timeout_score {]'.format(
+            i_episode, scores_mean[-1], score, ctime, timeout_score), end="")
+
+        # check whether it is still improving at least a bit
+        if best_avg_score + 0.1 > scores_mean[-1]:
+            best_avg_score = scores_mean[-1]
+            timeout_score = 0
+        elif timeout_score > 100:
             plotting.plotting(args=args, id=i_episode)
             break
-    return scores, scores_mean
+
+        # save an image every 20 steps to allow for sneak peeking
+        if i_episode % 20 == 0:
+            plotting.plotting(args=args, id=i_episode)
+            print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.2f}, episode_dur {:.2f}'.format(
+                i_episode, scores_mean[-1], score, ctime))
+
+        # save a network
+        if scores_mean[-1] > max_score and args.train:
+            print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode - 100,
+                                                                                         np.mean(scores_window)))
+            torch.save(agent.qnetwork_local.state_dict(), 'local_network_episode_' + str(i_episode) + '_score_' + str(max_score)+'.pth')
+            plotting.plotting(args=args, id=i_episode)
+
+    return best_avg_score, scores
 
 
 # main function
@@ -95,7 +110,7 @@ if __name__ == "__main__":
     brain = env.brains[brain_name]
 
     # reset the environment
-    env_info = env.reset(train_mode=True)[brain_name]
+    env_info = env.reset(train_mode=args.train)[brain_name]
 
     # number of agents in the environment
     print('Number of agents:', len(env_info.agents))
@@ -109,6 +124,7 @@ if __name__ == "__main__":
     print('States look like:', state)
     state_size = len(state)
     print('States have length:', state_size)
+
     agent = Agent(args,
                   state_size=state_size,
                   action_size=action_size,

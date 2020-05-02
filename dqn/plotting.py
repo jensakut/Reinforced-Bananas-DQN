@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import csv
 
 class Plotting:
     def __init__(self):
@@ -82,3 +83,11 @@ class Plotting:
             args.eps_end, self.timestamp)
         plt.savefig(name)
         plt.close(id)
+
+    def write_csv(self, args, csv, best_score, scores):
+        list = [args.use_double_q_learning,args.use_dueling_q_learning, args.use_prioritized_experience_replay, args.lr,
+            args.gamma, args.batch_size, args.tau, args.alpha, args.beta, args.eps, args.update_every, args.eps_decay,
+            args.eps_end, self.timestamp, best_score, scores, alpha, beta, epsilon]
+        with open('innovators.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["SN", "Name", "Contribution"])
