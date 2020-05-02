@@ -40,7 +40,7 @@ def dqn(agent, args):
         env_info = env.reset(train_mode=args.train)[brain_name]
         state = env_info.vector_observations[0]
         score = 0
-        max_score = 20
+        max_score = 16
         timeout_score = 0
         t_s = time.time()
         for t in range(args.max_t):
@@ -72,7 +72,7 @@ def dqn(agent, args):
             i_episode, scores_mean[-1], score, ctime, timeout_score), end="")
 
         # check whether it is still improving at least a bit
-        if best_avg_score + 0.1 > scores_mean[-1]:
+        if best_avg_score + 0.1 < scores_mean[-1]:
             best_avg_score = scores_mean[-1]
             timeout_score = 0
         elif timeout_score > 100:
@@ -84,12 +84,13 @@ def dqn(agent, args):
             plotting.plotting(args=args, id=i_episode)
             print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.2f}, episode_dur {:.2f}'.format(
                 i_episode, scores_mean[-1], score, ctime))
+            torch.save(agent.qnetwork_local.state_dict(), 'local_network_episode_' + str(i_episode) + '_score_' + str(scores_mean[-1])+'.pth')
 
         # save a network
         if scores_mean[-1] > max_score and args.train:
-            print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode - 100,
+            print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode,
                                                                                          np.mean(scores_window)))
-            torch.save(agent.qnetwork_local.state_dict(), 'local_network_episode_' + str(i_episode) + '_score_' + str(max_score)+'.pth')
+            torch.save(agent.qnetwork_local.state_dict(), 'local_network_episode_' + str(i_episode) + '_score_' + str(scores_mean[-1])+'.pth')
             plotting.plotting(args=args, id=i_episode)
 
     return best_avg_score, scores
