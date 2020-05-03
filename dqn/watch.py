@@ -1,9 +1,9 @@
+from collections import deque
+
+import numpy as np
 import torch
 from Agent import Agent
 from arguments import get_args
-import numpy as np
-from collections import deque
-
 # get arguments
 from unityagents import UnityEnvironment
 
@@ -20,7 +20,6 @@ def dqn(agent, args):
     #############################
     scores = []  # list containing scores from each episode
     scores_window = deque(maxlen=100)  # last 100 scores
-
 
     # have some plotting object that captures the scores
     eps = args.eps_start  # initialize epsilon
@@ -46,6 +45,7 @@ def dqn(agent, args):
                 scores_window.append(score)
                 break
     print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.2f}'.format(i_episode, np.mean(scores_window), score), end="")
+
 
 args = get_args()
 args.train = False
@@ -80,6 +80,5 @@ agent = Agent(args,
               filename='')
 # load best weights
 agent.qnetwork_local.load_state_dict(torch.load('local_network_best_15_400_episodes.pth'))
-
 
 dqn(agent, args)
