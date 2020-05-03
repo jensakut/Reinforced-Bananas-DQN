@@ -170,7 +170,7 @@ neatly into the dqn architecture with addons.
 #### [A Distributional Perspective on Reinforcement Learning](https://arxiv.org/abs/1707.06887)
 
 
-        In this paper we argue for the fundamental importance of the value distribution: the distribution of the random 
+        "In this paper we argue for the fundamental importance of the value distribution: the distribution of the random 
         return received by a reinforcement learning agent. This is in contrast to the common approach to reinforcement 
         learning which models the expectation of this return, or value. Although there is an established body of 
         literature studying the value distribution, thus far it has always been used for a specific purpose such as 
@@ -180,7 +180,7 @@ neatly into the dqn architecture with addons.
         distributions. We evaluate our algorithm using the suite of games from the Arcade Learning Environment. We 
         obtain both state-of-the-art results and anecdotal evidence demonstrating the importance of the value 
         distribution in approximate reinforcement learning. Finally, we combine theoretical and empirical evidence to 
-        highlight the ways in which the value distribution impacts learning in the approximate setting. 
+        highlight the ways in which the value distribution impacts learning in the approximate setting."
         
 #### [Noisy Networks for Exploration](https://arxiv.org/abs/1706.10295)
         
@@ -202,10 +202,11 @@ neatly into the dqn architecture with addons.
         paper examines six extensions to the DQN algorithm and empirically studies their combination. Our experiments 
         show that the combination provides state-of-the-art performance on the Atari 2600 benchmark, both in terms of 
         data efficiency and final performance. We also provide results from a detailed ablation study that shows the 
-        contribution of each component to overall performance. "
+        contribution of each component to overall performance."
         
 
-The picture below shows the performance of all above algorithms. 
+The components are further described in the [blogpost](https://medium.com/intelligentunit/conquering-openai-retro-contest-2-demystifying-rainbow-baseline-9d8dd258e74b)
+
 
 ![Rainbow](assets/rainbow.png?raw=true "rainbow dqn")
 
@@ -218,14 +219,13 @@ The repository contains the following algorithms with optimized parameters
 - Vanilla DQN 
 - Double DQN 
 - Dueling DQN
-- Prioritized experience replay 
+- Prioritized experience replay with a Sum Tree 
 Each algorithm can be switched off and on individually. To help understanding, the interested reader can search for the 
 occurrence of these switches and learn about their effect on the overall DQN architecture. 
 
 Interestingly, the Prioritized Experience Replay did not improve on the baseline. Though PER is able to solve 
-the environment with a score > 13 if the parameters are carefully optimized, PER diminishes the score of any tested 
+the environment with a score > 13 if the parameters are carefully optimized, PER reduces the score of any tested 
 parameter set compared to deactivated PER. 
-Therefore, a problem with the implementation is likely, but so far has not been found. 
 
 
 ## Model 
@@ -304,21 +304,19 @@ The watch.py file uses the weights obtained at episode 400 of this run.
 ![Best Run](results/double_True_duel_True_per_False_lr_0.001_gamma_0.99_batch_256_tau_0.01_alpha_0e+00_beta_0e+00_per.eps_0.001_updint_16_eps.decay_0.99_end_0.01_1588443084.826167.png?raw=true "Best run. Double DQN, LR 0.001, Gamma 0.99, Batchsize 256 every 16, tau 0.01, eps_decay 0.99, eps_min 0.01")
 
 The best run using Prioritized experience Replay is shown in the following diagram. The weighting factors for using 
-PER are actually decayed in order to achieve a high score. With per activated but the weighting factor alpha and the 
-scaling factor beta both to 0, per achieves a similar performance than using double dqn with more training examples. 
-The learning rate is set to 1e-4 in contrast to the above implementation with 1e-3. 
+PER are 0.4 in order to achieve a high score. 
+The learning rate is set to 1e-4 in contrast to the above implementation with 1e-3. The batch_size is increased to 512
+and the experience buffer is tripled to 2^15 (a number beneficial for the sum tree). 
 
 
-![Best Run](results/double_True_duel_True_per_True_lr_0.0001_gamma_0.99_batch_256_tau_0.01_alpha_0.4_beta_0.4_per.eps_0.001_updint_16_eps.decay_0.99_end_0.01_1588445981.5477183.png?raw=true "Best run. Double DQN, LR 0.001, Gamma 0.99, Batchsize 256 every 16, tau 0.01, eps_decay 0.99, eps_min 0.01")
+![Best Run](results/double_True_duel_True_per_True_lr_0.0001_gamma_0.99_batch_512_tau_0.01_alpha_0.4_beta_0.4_per.eps_0.001_updint_16_eps.decay_0.995_end_0.01_1588525602.8773358.png?raw=true "Best run. Double DQN, LR 0.001, Gamma 0.99, Batchsize 256 every 16, tau 0.01, eps_decay 0.99, eps_min 0.01")
 
 # Potential improvements
 
 The main improvement would be a randomized parameter-search. By giving each parameter a (discretized) interval, a 
 random search or a small hill climber could optimize meta-parameters. That helps to identify the potential of each 
-algorithm. With the current implementation, a practical approach is to use only double dqn and then optimize the 
-parameters. 
+algorithm. With the current implementation, a parameter search is quite time-consuming. 
 
-The implementation of prioritized experience replay are currently not working as expected and need further work. 
 Then, it would be very interesting to use saliency maps and the visual simulator to further analyze the algorithmic 
 performance and fallacies. 
 
