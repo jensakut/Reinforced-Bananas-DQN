@@ -1,9 +1,8 @@
 import random
-import torch
-import numpy as np
-
 from collections import namedtuple, deque
 
+import numpy as np
+import torch
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -26,6 +25,11 @@ class ExperienceReplay:
         self.batch_size = batch_size
         self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
         self.seed = random.seed(seed)
+
+        # for compatibility with prioritized memory
+        self.alpha = 0.0
+        self.beta = 0.0
+        self.i_episode = 0
 
     def add(self, state, action, reward, next_state, done):
         """Add a new experience to memory."""

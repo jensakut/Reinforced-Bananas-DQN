@@ -1,7 +1,7 @@
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 
 class QNetwork_fc(nn.Module):
     """Actor (Policy) Model."""
@@ -36,4 +36,3 @@ class QNetwork_fc(nn.Module):
             return self.fc3(x) + self.state_value(x)
         else:
             return self.fc3(x)
-

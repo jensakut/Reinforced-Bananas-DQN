@@ -1,16 +1,13 @@
-import numpy as np
 import random
 
-# from model import QNetwork
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
 from ExperienceReplay import ExperienceReplay
 from PrioritizedExperienceReplay import PrioritizedExperienceReplay
 from QNetwork_fc import QNetwork_fc
-
-import torch
-import torch.nn.functional as F
-import torch.optim as optim
-import torch.nn as nn
-
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -41,26 +38,21 @@ class Agent:
         self.tau = args.tau
         self.update_every = args.update_every
         self.use_prioritized_experience_replay = args.use_prioritized_experience_replay
-        self.eps = args.eps
-
-        self.alpha = args.alpha
-        self.beta = args.beta
-        self.d_alpha = (args.alpha_end - args.alpha) / args.ann_length
-        self.d_beta = (args.beta_end - args.beta) / args.ann_length
-        self.ann_length = args.ann_length
 
         # Q-Network
-
-        self.qnetwork_local = QNetwork_fc(state_size, action_size, args.seed, fc1_units=args.fc1, fc2_units=args.fc2, use_dueling=self.use_dueling_q_learning).to(device)
-        self.qnetwork_target = QNetwork_fc(state_size, action_size, args.seed, fc1_units=args.fc1, fc2_units=args.fc2, use_dueling=self.use_dueling_q_learning).to(device)
-
+        self.qnetwork_local = QNetwork_fc(state_size, action_size, args.seed, fc1_units=args.fc1, fc2_units=args.fc2,
+                                          use_dueling=self.use_dueling_q_learning).to(device)
+        self.qnetwork_target = QNetwork_fc(state_size, action_size, args.seed, fc1_units=args.fc1, fc2_units=args.fc2,
+                                           use_dueling=self.use_dueling_q_learning).to(device)
         print(self.qnetwork_local)
 
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=args.lr)
-
         self.mse_loss = nn.MSELoss()
         self.mse_element_loss = nn.MSELoss(reduce=False)
-        self.l1_loss = nn.L1Loss(reduce=False)
+
+        self.eps_end = args.eps_end
+        self.eps_decay = args.eps_decay
+        self.eps = args.eps_start
 
         if filename:
             weights = torch.load(filename)
@@ -77,8 +69,6 @@ class Agent:
         self.t_step = 0
         self.i_episode = 1
 
-
-
     def step(self, state, action, reward, next_state, done):
         # Save experience in replay memory
         self.memory.add(state, action, reward, next_state, done)
@@ -91,12 +81,11 @@ class Agent:
                 experiences = self.memory.sample()
                 self.learn(experiences, self.gamma)
 
-        if done and self.use_prioritized_experience_replay and self.i_episode < self.ann_length:
-            self.alpha += self.d_alpha
-            self.beta += self.d_beta
-            self.i_episode += 1
+        if done:
+            self.eps = max(self.eps_end, self.eps_decay * self.eps)  # decrease epsilon
+            self.memory.i_episode += 1
 
-    def act(self, state, eps=0.):
+    def act(self, state):
         """Returns actions for given state as per current policy.
 
         Params
@@ -111,7 +100,7 @@ class Agent:
         self.qnetwork_local.train()
 
         # Epsilon-greedy action selection
-        if random.random() > eps:
+        if random.random() > self.eps:
             return np.argmax(action_values.cpu().data.numpy())
         else:
             return random.choice(np.arange(self.action_size))
@@ -125,7 +114,7 @@ class Agent:
             gamma (float): discount factor
         """
         if self.use_prioritized_experience_replay:
-            sample_indices, states, actions, rewards, next_states, is_weights, dones = experiences
+            sample_indices, is_weights, states, actions, rewards, next_states, dones = experiences
         else:
             states, actions, rewards, next_states, dones = experiences
 
@@ -177,4 +166,3 @@ class Agent:
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(self.tau * local_param.data + (1.0 - self.tau) * target_param.data)
-

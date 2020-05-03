@@ -1,7 +1,8 @@
+import time
+
 import matplotlib.pyplot as plt
 import numpy as np
-import time
-import csv
+
 
 class Plotting:
     def __init__(self):
@@ -49,7 +50,6 @@ class Plotting:
         self.beta.append(beta)
         self.count += 1
 
-
     # do some logging and plotting
     def plotting(self, args, id):
         # plot the scores
@@ -71,23 +71,26 @@ class Plotting:
         axs[1].plot(self.eps_x, self.eps_y, '.', label='eps halftime')
         axs[1].plot(np.arange(len(self.alpha)), self.alpha, label='alpha')
         axs[1].plot(np.arange(len(self.beta)), self.beta, label='beta')
-        axs[1].plot(np.arange(len(self.episode_length)), np.array(self.episode_length)/self.max_episode_length, label='Norm. episode_length')
+        axs[1].plot(np.arange(len(self.episode_length)), np.array(self.episode_length) / self.max_episode_length,
+                    label='Norm. episode_length')
 
         axs[1].set_ylabel('epsilon')
         axs[1].legend()
 
         axs[1].set_xlabel('Episode Number')
         name = "double_{}_duel_{}_per_{}_lr_{}_gamma_{}_batch_{}_tau_{}_alpha_{:.1}_beta_{:.1}_per.eps_{:.1}_updint_{}_eps.decay_{}_end_{}_{}.png".format(
-            args.use_double_q_learning,args.use_dueling_q_learning, args.use_prioritized_experience_replay, args.lr,
+            args.use_double_q_learning, args.use_dueling_q_learning, args.use_prioritized_experience_replay, args.lr,
             args.gamma, args.batch_size, args.tau, args.alpha, args.beta, args.eps, args.update_every, args.eps_decay,
             args.eps_end, self.timestamp)
         plt.savefig(name)
         plt.close(id)
 
     def write_csv(self, args, csv, best_score, scores):
-        list = [args.use_double_q_learning,args.use_dueling_q_learning, args.use_prioritized_experience_replay, args.lr,
-            args.gamma, args.batch_size, args.tau, args.alpha, args.beta, args.eps, args.update_every, args.eps_decay,
-            args.eps_end, self.timestamp, best_score, scores, alpha, beta, epsilon]
+        list = [args.use_double_q_learning, args.use_dueling_q_learning, args.use_prioritized_experience_replay,
+                args.lr,
+                args.gamma, args.batch_size, args.tau, args.alpha, args.beta, args.eps, args.update_every,
+                args.eps_decay,
+                args.eps_end, self.timestamp, best_score, scores, alpha, beta, epsilon]
         with open('innovators.csv', 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(["SN", "Name", "Contribution"])
