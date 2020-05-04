@@ -36,23 +36,21 @@ The task is episodic, and in order to solve the environment, the agent must get 
 
         env = UnityEnvironment(file_name="Banana_Linux/Banana.x86_64")
 
-3a. Use Anaconda to install the 'pytorch' environment 
+Optional: Use Anaconda to install the 'pytorch' environment 
 
         conda env create -f environment.yml
         conda activate pytorch 
         
-3b. alternatively, use the requirements.txt to install via pip in your favorite python distribution
+3. Use the setup.py to install dependencies in your favorite python distribution and/or environment
 
-        pip install -r requirements.txt (Python 2), 
-        pip3 install -r requirements.txt (Python 3)
 
+        pip install .
 
 4. Train or watch the pretrained agent with the arguments in the file dqn/arguments.py by executing in folder dqn
 
 
         python train.py
         python watch.py   
-
 
 
 # Concept of Reinforcement learning: 
