@@ -2,10 +2,11 @@ from collections import deque
 
 import numpy as np
 import torch
-from Agent import Agent
-from arguments import get_args
 # get arguments
 from unityagents import UnityEnvironment
+
+from .Agent import Agent
+from .arguments import get_args
 
 
 def dqn(agent, args):

@@ -21,7 +21,7 @@ def get_args():
     parse.add_argument('--fc1', type=int, default=int(64), help='the fc1 network layers')
     parse.add_argument('--fc2', type=int, default=int(64), help='the fc2 network layers')
 
-    # dqn common parameters mainly used in train_dqn.py
+    # dqn common parameters mainly used in train.py
     parse.add_argument('--n_episodes', type=int, default=int(1000), help='the total timesteps to train network')
     parse.add_argument('--max_t', type=int, default=int(300), help='maximum number of timesteps per episode')
     parse.add_argument('--eps_start', type=float, default=1, help='the initial exploration ratio')

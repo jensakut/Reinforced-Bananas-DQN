@@ -3,15 +3,16 @@ from collections import deque
 
 import numpy as np
 import torch
-from Agent import Agent
-from arguments import get_args
-from plotting import Plotting
-from unityagents import UnityEnvironment
+
+from dqn.Agent import Agent
+from dqn.UnityWrapper import UnityWrapper
+from dqn.arguments import get_args
+from dqn.plotting import Plotting
 
 
 # dqn function training the agent
 
-def dqn(agent, args):
+def dqn(agent, args, env):
     """Deep Q-Learning.
 
     Args
@@ -35,17 +36,13 @@ def dqn(agent, args):
     # run the episodes
     #############################
     for i_episode in range(1, args.n_episodes + 1):
-        env_info = env.reset(train_mode=args.train)[brain_name]
-        state = env_info.vector_observations[0]
+        state = env.reset()
         score = 0
         max_score = 16
         t_s = time.time()
         for t in range(args.max_t):
             action = agent.act(state)
-            env_info = env.step(action)[brain_name]
-            next_state = env_info.vector_observations[0]  # get the next state
-            reward = env_info.rewards[0]  # get the reward
-            done = env_info.local_done[0]  # see if episode has finished
+            reward, next_state, done = env.step(action)  # get the next state
             if args.train:
                 agent.step(state, action, reward, next_state, done)
             score += reward  # update the score
@@ -106,31 +103,10 @@ if __name__ == "__main__":
     # get arguments
     args = get_args()
 
-    # initialize the environment
-    env = UnityEnvironment(file_name=args.sim_dir)
-
-    # get the default brain
-    brain_name = env.brain_names[0]
-    brain = env.brains[brain_name]
-
-    # reset the environment
-    env_info = env.reset(train_mode=args.train)[brain_name]
-
-    # number of agents in the environment
-    print('Number of agents:', len(env_info.agents))
-
-    # number of actions
-    action_size = brain.vector_action_space_size
-    print('Number of actions:', action_size)
-
-    # examine the state space
-    state = env_info.vector_observations[0]
-    print('States look like:', state)
-    state_size = len(state)
-    print('States have length:', state_size)
-
+    env_wrapper = UnityWrapper(args)
+    state_size, action_size, _ = env_wrapper.get_env_info()
     agent = Agent(args,
                   state_size=state_size,
                   action_size=action_size,
                   filename='')
-    scores_double, scores_mean_double = dqn(agent, args)
+    scores_double, scores_mean_double = dqn(agent, args, env_wrapper)

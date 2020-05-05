@@ -3,7 +3,8 @@ from collections import namedtuple
 
 import numpy as np
 import torch
-from SumTree import SumTree
+
+from .SumTree import SumTree
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 

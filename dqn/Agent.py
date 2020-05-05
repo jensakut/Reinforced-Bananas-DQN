@@ -5,9 +5,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from ExperienceReplay import ExperienceReplay
-from PrioritizedExperienceReplay import PrioritizedExperienceReplay
-from QNetwork_fc import QNetwork_fc
+
+from dqn.ExperienceReplay import ExperienceReplay
+from dqn.PrioritizedExperienceReplay import PrioritizedExperienceReplay
+from dqn.QNetwork_fc import QNetwork_fc
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -30,6 +31,7 @@ class Agent:
         self.use_dueling_q_learning = args.use_dueling_q_learning
         self.use_prioritized_experience_replay = args.use_prioritized_experience_replay
 
+
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(args.seed)
@@ -48,7 +50,7 @@ class Agent:
 
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=args.lr)
         self.mse_loss = nn.MSELoss()
-        self.mse_element_loss = nn.MSELoss(reduce=False)
+        self.mse_element_loss = nn.MSELoss()
 
         self.eps_end = args.eps_end
         self.eps_decay = args.eps_decay
