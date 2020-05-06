@@ -29,8 +29,11 @@ def dqn(agent, args, env):
     best_avg_score = -1000.0
     max_t = 0
     # have some plotting object that captures the scores
-    plotting = Plotting()
+    plotting = Plotting(args)
     timeout_score = 0
+    max_downswing = 3.
+    downswing = 0.
+    max_score = 18
 
     #############################
     # run the episodes
@@ -38,7 +41,6 @@ def dqn(agent, args, env):
     for i_episode in range(1, args.n_episodes + 1):
         state = env.reset()
         score = 0
-        max_score = 16
         t_s = time.time()
         for t in range(args.max_t):
             action = agent.act(state)
@@ -57,21 +59,30 @@ def dqn(agent, args, env):
         scores.append(score)
         scores_window.append(score)
         scores_mean.append(np.mean(scores_window))
+
+        # analyze how much downswing there is
+        # allow a maximum reduction of 2 in the average score
+        if i_episode > 1:
+            delta_m_score = scores_mean[-1] - scores_mean[-2]
+            downswing = min(0, downswing + delta_m_score)
+
         plotting.add_measurement(score=score, mean_score=scores_mean[-1], episode_length=max_t, epsilon=agent.eps,
-                                 alpha=agent.memory.alpha, beta=agent.memory.beta)
+                                 alpha=agent.memory.alpha, beta=agent.memory.beta, downswing=downswing)
 
         best_score = max(score, best_score)
         # check whether it is still improving at least a bit
         if best_avg_score < scores_mean[-1]:
             best_avg_score = scores_mean[-1]
             timeout_score = 0
-        # at the beginning it is particularily noisy so deactivate the timeout a bit
-        if i_episode < 0.05 * args.n_episodes:
-            timeout_score = 0
-        # if nothing improving the score is learned after 100 episodes stop
-
-        elif timeout_score > 100:
+        # if nothing improving the score is learned after n episodes stop
+        elif timeout_score > 300 and i_episode > 0.1 * args.n_episodes:
             plotting.plotting(args=args, id=i_episode)
+            print("timeout of {:.1f} ended this training.".format(timeout_score))
+            break
+        # if score went down significantly, stop
+        elif downswing < -max_downswing and i_episode > 0.05 * args.n_episodes:
+            plotting.plotting(args=args, id=i_episode)
+            print("downswing of magnitude {:.1f} ended this training.".format(downswing))
             break
 
         # state where we are
@@ -84,18 +95,22 @@ def dqn(agent, args, env):
             plotting.plotting(args=args, id=i_episode)
             print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.1f}, episode_dur {:.2f}'.format(
                 i_episode, scores_mean[-1], score, ctime))
-            torch.save(agent.qnetwork_local.state_dict(),
-                       'local_network_episode_' + str(i_episode) + '_score_' + str(scores_mean[-1]) + '.pth')
+            if score > 0.9 * max_score:
+                torch.save(agent.qnetwork_local.state_dict(),
+                           args.save_dir + 'local_network_score_' + str(scores_mean[-1]) + '_i_episode_' + str(
+                               i_episode) +
+                           '_' + str(plotting.timestamp) + '.pth')
 
         # save a network
         if scores_mean[-1] > max_score and args.train:
             print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode,
                                                                                          np.mean(scores_window)))
             torch.save(agent.qnetwork_local.state_dict(),
-                       'local_network_episode_' + str(i_episode) + '_score_' + str(scores_mean[-1]) + '.pth')
+                       args.save_dir + 'local_network_score_' + str(scores_mean[-1]) + '_i_episode_' + str(i_episode) +
+                       '_' + plotting.timestamp + '.pth')
             plotting.plotting(args=args, id=i_episode)
 
-    return best_avg_score, scores
+    return scores, scores_mean
 
 
 # main function
@@ -109,4 +124,4 @@ if __name__ == "__main__":
                   state_size=state_size,
                   action_size=action_size,
                   filename='')
-    scores_double, scores_mean_double = dqn(agent, args, env_wrapper)
+    scores, scores_mean = dqn(agent, args, env_wrapper)

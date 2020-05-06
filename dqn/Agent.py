@@ -31,7 +31,6 @@ class Agent:
         self.use_dueling_q_learning = args.use_dueling_q_learning
         self.use_prioritized_experience_replay = args.use_prioritized_experience_replay
 
-
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(args.seed)
@@ -52,9 +51,9 @@ class Agent:
         self.mse_loss = nn.MSELoss()
         self.mse_element_loss = nn.MSELoss()
 
-        self.eps_end = args.eps_end
-        self.eps_decay = args.eps_decay
-        self.eps = args.eps_start
+        self.eps_end = args.epsilon_min
+        self.eps_decay = args.epsilon_decay
+        self.eps = args.epsilon_start
 
         if filename:
             weights = torch.load(filename)
