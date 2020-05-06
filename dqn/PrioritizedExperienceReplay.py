@@ -1,4 +1,3 @@
-import random
 from collections import namedtuple
 
 import numpy as np
@@ -30,15 +29,15 @@ class PrioritizedExperienceReplay:
             batch_size (int): size of each training batch
             seed (int): random seed
         """
-        self.seed = random.seed(args.seed)
-        self.max_priority = args.max_priority
-        self.alpha = args.alpha
-        self.beta = args.beta
-        self.alpha_increment = (args.alpha_end - args.alpha) / args.ann_length
-        self.beta_increment = (args.beta_end - args.beta) / args.ann_length
-        self.eps = args.eps
+        self.seed = args.seed
+        self.max_priority = args.per_max_priority
+        self.alpha = args.per_alpha
+        self.beta = args.per_beta
+        self.alpha_increment = (args.per_alpha_end - args.per_alpha) / args.per_annihilation
+        self.beta_increment = (args.per_beta_end - args.per_beta) / args.per_annihilation
+        self.eps = args.per_eps
         self.i_episode = 0  # set from agent
-        self.max_priority = args.max_priority
+        self.max_priority = args.per_max_priority
         self.tree = SumTree(args.buffer_size)
         self.capacity = args.buffer_size
         self.batch_size = args.batch_size
