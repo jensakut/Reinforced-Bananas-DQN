@@ -49,9 +49,12 @@ Optional: Use Anaconda to install the 'pytorch' environment
 4. Train or watch the pretrained agent with the arguments in the file dqn/arguments.py by executing in folder dqn
 
 
-        python train.py
-        python watch.py   
-
+        python train.py will train an agent with the parameters configured in arguments.py
+        python watch.py   will show a preconfigured agent with a score of 15
+        python train_policy_search.py will use policy search hillclimbing to optimize the policy in arguments.py
+        
+The policy needs to be then updated manually based on the results of hillclimbing. 
+The hillclimb can be configured in PolicySearch.py 
 
 # Concept of Reinforcement learning: 
 
@@ -221,10 +224,6 @@ The repository contains the following algorithms with optimized parameters
 Each algorithm can be switched off and on individually. To help understanding, the interested reader can search for the 
 occurrence of these switches and learn about their effect on the overall DQN architecture. 
 
-Interestingly, the Prioritized Experience Replay did not improve on the baseline. Though PER is able to solve 
-the environment with a score > 13 if the parameters are carefully optimized, PER reduces the score of any tested 
-parameter set compared to deactivated PER. 
-
 
 ## Model 
 The Double DQN uses a simple network architecture exhibiting fully
@@ -251,7 +250,7 @@ Learning rate 1e-4, learn every 4 steps from 32 episodes. If the agent learns ev
 steps are fewer, but the episodes are faster due to the usage of a graphics card with enough memory.  
 The average score is improved from 14.3 to 15 in fewer episodes.
 
-### Improved parameters
+### Improved parameters with manual search
 
 A faster training can be achieved using the following parameters: 
 ### Experience Buffer 10000
@@ -309,11 +308,43 @@ and the experience buffer is tripled to 2^15 (a number beneficial for the sum tr
 
 ![Best Run](results/double_True_duel_True_per_True_lr_0.0001_gamma_0.99_batch_512_tau_0.01_alpha_0.4_beta_0.4_per.eps_0.001_updint_16_eps.decay_0.995_end_0.01_1588525602.8773358.png?raw=true "Best run. Double DQN, LR 0.001, Gamma 0.99, Batchsize 256 every 16, tau 0.01, eps_decay 0.99, eps_min 0.01")
 
-# Potential improvements
+# Policy search 
 
-The main improvement would be a randomized parameter-search. By giving each parameter a (discretized) interval, a 
-random search or a small hill climber could optimize meta-parameters. That helps to identify the potential of each 
-algorithm. With the current implementation, a parameter search is quite time-consuming. 
+Currently the policy search samples a trajectory based on the configured parameters in arguments.py. These arguments
+are randomly altered and a training trajectory is rolled out. 
+
+Hill Climbing
+
+Hill climbing is an iterative algorithm that can be used to find the weights θ for an optimal policy.
+By slightly perturbing the values of the current best estimate for the weights θbest, 
+a new set of weights is yielded. These new weights are then used to collect an episode. If the new weights 
+θnew resulted in higher return than the old weights, then θnew is set as the new θbest.
+
+
+## Random altering
+The trajectory gets rated according to max average score and the average score overall. This favors an algorithm that 
+achieves a high score and learns fast. 
+The best rated trajectory is modified randomly according to a predefined set of parameters to be sampled from. The idea
+stems from the PER paper, which gives reasonable ranges for parameters. The parameters are based on typical parameter 
+ranges. 
+For each step, the best known parameter set gets mutated. 
+
+In Hillclimbing, parameters get changed by a small offset. But this approach does not account for the parameters
+to be optimized here, which sometimes can vary in factors of 10 or 100. Therefore, two parameters get sampled randomly. 
+Previously sampled trajectories get rejected, because the computational time is too high. 
+
+## Data analysis
+
+Each run gets logged with an matplotlib-diagram, a csv and a yaml. 
+The image shows the learnign progress in a representative way. 
+The csv and yaml show similar data, but sometimes 
+a quick look into a csv spreadsheet is nice. 
+The logged data also show the trajectories of characteristic values to allow for post-analysis in detail. 
+
+Currently, the alternated parameters are: 'learning_rate', 'fc1', 'fc2', 'annihilation_lengths', 'alpha', 'beta_start',
+                                'batch_size', 'epsilon_decay', 'tau', 'update_every', 'per_eps', 'buffer_size'
+
+# Potential improvements
 
 Then, it would be very interesting to use saliency maps and the visual simulator to further analyze the algorithmic 
 performance and fallacies. 
