@@ -11,7 +11,6 @@ from dqn.plotting import Plotting
 
 
 # dqn function training the agent
-
 def dqn(agent, args, env):
     """Deep Q-Learning.
 
@@ -74,16 +73,6 @@ def dqn(agent, args, env):
         if best_avg_score < scores_mean[-1]:
             best_avg_score = scores_mean[-1]
             timeout_score = 0
-        # if nothing improving the score is learned after n episodes stop
-        elif timeout_score > 300 and i_episode > 0.1 * args.n_episodes:
-            plotting.plotting(args=args, id=i_episode)
-            print("timeout of {:.1f} ended this training.".format(timeout_score))
-            break
-        # if score went down significantly, stop
-        elif downswing < -max_downswing and i_episode > 0.05 * args.n_episodes:
-            plotting.plotting(args=args, id=i_episode)
-            print("downswing of magnitude {:.1f} ended this training.".format(downswing))
-            break
 
         # state where we are
         print('\rEpisode {}\tAverage Score: {:.1f}\tScore: {:.0f}, episode_dur {:.2f}, best_avg_score {:.1f}, '
@@ -109,7 +98,6 @@ def dqn(agent, args, env):
                        args.save_dir + 'local_network_score_' + str(scores_mean[-1]) + '_i_episode_' + str(i_episode) +
                        '_' + plotting.timestamp + '.pth')
             plotting.plotting(args=args, id=i_episode)
-
     return scores, scores_mean
 
 

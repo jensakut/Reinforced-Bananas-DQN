@@ -6,14 +6,14 @@ import numpy as np
 
 def policy_to_args(policy, args):
     [args.lr, args.fc1, args.fc2, args.per_annihilation, args.per_alpha, args.per_beta,
-     args.batch_size, args.epsilon_decay, args.tau, args.update_every, args.per_eps] = policy
+     args.batch_size, args.epsilon_decay, args.tau, args.update_every, args.per_eps, args.buffer_size] = policy
     args.per_alpha_end = args.per_alpha
     return args
 
 
 def get_policy(args):
     return [args.lr, args.fc1, args.fc2, args.per_annihilation, args.per_alpha, args.per_beta,
-            args.batch_size, args.epsilon_decay, args.tau, args.update_every, args.per_eps]
+            args.batch_size, args.epsilon_decay, args.tau, args.update_every, args.per_eps, args.buffer_size]
 
 
 def _optimization_formula(rewards):
@@ -46,11 +46,12 @@ class PolicySearch:
         taus = [1e-2, 5e-2, 1e-3]
         update_everys = [8, 16, 32, 64]
         per_epss = [1e-3, 1e-2]
+        buffer_sizes = [2 ** 14, 2 ** 15, 2 ** 16]
 
         self.parameters = [learning_rates, fc1s, fc2s, ann_lengths, alphas, betas,
-                           batch_sizes, epsilon_decays, taus, update_everys, per_epss]
+                           batch_sizes, epsilon_decays, taus, update_everys, per_epss, buffer_sizes]
         self.name_parameters = ['learning_rate', 'fc1', 'fc2', 'annihilation_lengths', 'alpha', 'beta_start',
-                                'batch_size', 'epsilon_decay', 'tau', 'update_every', 'per_eps']
+                                'batch_size', 'epsilon_decay', 'tau', 'update_every', 'per_eps', 'buffer_size']
         assert len(self.parameters) is len(self.name_parameters)
         self.n_parameters = len(self.parameters)
 
