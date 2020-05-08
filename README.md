@@ -308,30 +308,49 @@ and the experience buffer is tripled to 2^15 (a number beneficial for the sum tr
 
 ![Best Run](results/double_True_duel_True_per_True_lr_0.0001_gamma_0.99_batch_512_tau_0.01_alpha_0.4_beta_0.4_per.eps_0.001_updint_16_eps.decay_0.995_end_0.01_1588525602.8773358.png?raw=true "Best run. Double DQN, LR 0.001, Gamma 0.99, Batchsize 256 every 16, tau 0.01, eps_decay 0.99, eps_min 0.01")
 
-# Policy search 
+# Policy-based algorithm used for searching for optimal parameters 
 
 Currently the policy search samples a trajectory based on the configured parameters in arguments.py. These arguments
 are randomly altered and a training trajectory is rolled out. 
 
-Hill Climbing
+## Hill Climbing
 
 Hill climbing is an iterative algorithm that can be used to find the weights θ for an optimal policy.
 By slightly perturbing the values of the current best estimate for the weights θbest, 
 a new set of weights is yielded. These new weights are then used to collect an episode. If the new weights 
 θnew resulted in higher return than the old weights, then θnew is set as the new θbest.
 
+## Beyond Hill Climbing
 
-## Random altering
+Steepest ascent hill climbing is a variation of hill climbing that chooses a small number of neighboring policies at 
+each iteration and chooses the best among them.
+
+Simulated annealing uses a pre-defined schedule to control how the policy space is explored, and gradually reduces the 
+search radius as we get closer to the optimal solution.
+
+Adaptive noise scaling decreases the search radius with each iteration when a new best policy is found, and otherwise 
+increases the search radius.
+
+
+## Algorithm implemented in this Random Hillclimbing
 The trajectory gets rated according to max average score and the average score overall. This favors an algorithm that 
 achieves a high score and learns fast. 
-The best rated trajectory is modified randomly according to a predefined set of parameters to be sampled from. The idea
+The best rated trajectory is modified _randomly_ according to a predefined set of parameters to be sampled from. The idea
 stems from the PER paper, which gives reasonable ranges for parameters. The parameters are based on typical parameter 
 ranges. 
 For each step, the best known parameter set gets mutated. 
 
 In Hillclimbing, parameters get changed by a small offset. But this approach does not account for the parameters
-to be optimized here, which sometimes can vary in factors of 10 or 100. Therefore, two parameters get sampled randomly. 
-Previously sampled trajectories get rejected, because the computational time is too high. 
+to be optimized here, which sometimes can vary in factors of 10 or 100. Therefore, two parameters get chosen and sampled
+ randomly at each iteration to generate a new trajectory. 
+Previously sampled trajectories get not rolled out again, because the computational burden is too high. 
+
+The cross-entropy method iteratively suggests a small number of neighboring policies, and uses a small percentage of 
+the best performing policies to calculate a new estimate.
+
+The evolution strategies technique considers the return corresponding to each candidate policy. The policy estimate at 
+the next iteration is a weighted sum of all of the candidate policies, where policies that got higher return are 
+given higher weight.
 
 ## Data analysis
 
